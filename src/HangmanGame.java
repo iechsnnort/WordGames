@@ -20,6 +20,59 @@ public class HangmanGame {
     }
 
     public void run() {
+        String[] stages = {
+                """
+  ┌─────┐
+  │
+  │
+  │
+──┴──
+""",
+                """
+  ┌─────┐
+  │     ☹
+  │
+  │
+──┴──
+""",
+                """
+  ┌─────┐
+  │     ☹
+  │     │
+  │
+──┴──
+""",
+                """
+  ┌─────┐
+  │     ☹
+  │    ─┤
+  │
+──┴──
+""",
+                """
+  ┌─────┐
+  │     ☹
+  │    ─┼─
+  │
+──┴──
+""",
+                """
+  ┌─────┐
+  │     ☹
+  │    ─┼─
+  │    /
+──┴──
+""",
+                """
+  ┌─────┐
+  │     ☹
+  │    ─┼─
+  │    / \\
+──┴──
+"""
+        };
+        int stage = 0;
+
         do {
             System.out.println();
             System.out.println();
@@ -27,6 +80,7 @@ public class HangmanGame {
             // Print board
             String feedback = transformWord(this.guessedCorrect);
             System.out.println(feedback);
+            System.out.println(stages[stage]);
             System.out.println("Guesses left: " + this.guesses);
             System.out.println("Wrong letters: " + this.guessedWrong);
 
@@ -62,17 +116,25 @@ public class HangmanGame {
                 // Add wrong guess
                 if (!(this.guessedWrong.contains(guess))) this.guessedWrong.add(guess);
                 this.guesses--;
+                stage++;
             }
 
+            if (this.currentWord.equals(transformWord(this.guessedCorrect))) this.guesses = -1;
+            System.out.println(this.currentWord + " " + transformWord(this.guessedCorrect));
         } while (this.guesses > 0);
+
 
         // Game loop over.
         if (this.guesses == 0) {
-            System.out.println("You lost. Thanks for playing!");
+            System.out.println(stages[6]);
+            System.out.println("You lost. The word was: " + this.currentWord + "\r\nThanks for playing!");
+
         } else {
-            System.out.println("You won with" + this.guesses + " guesses left!");
-            if (this.guesses > HangmanGame.HIGH_SCORE) HangmanGame.HIGH_SCORE = this.guesses;
+            System.out.println("You won with " + stage + "wrong guesses!");
+            if (stage < HangmanGame.HIGH_SCORE) HangmanGame.HIGH_SCORE = stage;
         }
+        System.out.println();
+        System.out.println();
     }
 
     // Returns a string filled with _'s the length of the current word, with the correct letters replaced if found in
@@ -89,6 +151,6 @@ public class HangmanGame {
             }
         }
 
-        return Arrays.toString(untransformed);
+        return new String(untransformed);
     }
 }

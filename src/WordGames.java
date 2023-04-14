@@ -1,9 +1,27 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Random;
 import java.util.Scanner;
 
 public class WordGames {
     public static final Scanner INPUT = new Scanner(System.in);
-    public static void main(String[] args) {
+    public static ArrayList<String> wordBank = new ArrayList<>();
+
+    public static void main(String[] args) throws FileNotFoundException {
         int selection;
+        try {
+            File file = new File("words_alpha.txt");
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                WordGames.wordBank.add(scanner.nextLine());
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            System.out.println("Big error! Uh oh!");
+            throw e;
+        }
+
         do {
             WordGames.printMenu();
 
@@ -22,7 +40,9 @@ public class WordGames {
                 case 1:
                     break;
                 case 2:
-                    HangmanGame hangman = new HangmanGame("Among");
+                    Random random = new Random();
+                    String word = WordGames.wordBank.get(random.nextInt(WordGames.wordBank.size()));
+                    HangmanGame hangman = new HangmanGame(word);
                     hangman.run();
                     break;
                 case 3:
