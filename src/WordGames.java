@@ -39,7 +39,7 @@ public class WordGames {
                 3 .. Crossword (%d)
                                         
                 0 .. Exit
-                Your Selection:\s""", 0, HangmanGame.getHighScore(), 0); // Placeholder 0's
+                Your Selection:\s""", 0, HangmanGame.HIGH_SCORE, 0); // Placeholder 0's
         System.out.print(menu);
     }
 }
