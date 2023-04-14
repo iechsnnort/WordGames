@@ -1,11 +1,12 @@
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 public class HangmanGame {
     private String currentWord;
     private static int highScore = 0;
     private int guesses;
-    private ArrayList<Character> guessed = new ArrayList<Character>();
+    private ArrayList<Character> guessedWrong = new ArrayList<Character>();
+    private ArrayList<Character> guessedCorrect = new ArrayList<Character>();
 
     public HangmanGame(String word) {
         // Initialize the Hangman game
@@ -20,10 +21,15 @@ public class HangmanGame {
 
     public void run() {
         do {
-            // This is where the game loop and game logic happens
+            String feedback = transformWord(this.guessedCorrect);
+            System.out.println();
+            System.out.println();
+
             // Print board
+            System.out.println(feedback);
             System.out.println("Guesses left: " + this.guesses);
-            System.out.println(this.guessed);
+            System.out.println("Wrong letters: " + this.guessedWrong);
+
             // Get guess
             System.out.print("Enter guess: ");
             char guess;
@@ -31,7 +37,7 @@ public class HangmanGame {
                 guess = WordGames.INPUT.nextLine().toUpperCase().toCharArray()[0];
             } catch (Exception e) {
                 System.out.println("Error: Guess must be a letter from A-Z!");
-                break;
+                continue;
             }
 
             // Is guess a valid letter?
@@ -40,21 +46,46 @@ public class HangmanGame {
                 continue;
             }
 
-            // Feedback from guess
             // Is guess right?
-            if (List.of(this.currentWord.toCharArray()).contains(guess)) {
-                // Guess is right
-                // Transform word string
-            } else {
-                // Add wrong guess
-                if (!(this.guessed.contains(guess))) this.guessed.add(guess);
+            boolean correct = false;
+            for (char character : this.currentWord.toUpperCase().toCharArray()) {
+                if (character == guess) {
+                    correct = true;
+                    break;
+                }
             }
 
-        } while (true); // Replace true with some condition, or simply a break statement.
+            if (correct) {
+                // Guess is right
+                this.guessedCorrect.add(guess);
+            } else {
+                // Add wrong guess
+                if (!(this.guessedWrong.contains(guess))) this.guessedWrong.add(guess);
+                this.guesses--;
+            }
+
+        } while (this.guesses > 0);
+
+        if (this.guesses == 0) {
+            System.out.println("You lost. Thanks for playing!");
+        } else {
+            System.out.println("You won! And only in " + this.guesses + " guesses! New high score!");
+        }
     }
 
-    private String transformWord(ArrayList<Character> guesses) {
-        return "";
+    private String transformWord(ArrayList<Character> lettersCorrect) {
+        char[] untransformed = new char[this.currentWord.length()];
+        Arrays.fill(untransformed, '_');
+
+        for (char letter : lettersCorrect) {
+            for (int i = 0; i < untransformed.length; i++) {
+                if (this.currentWord.toUpperCase().toCharArray()[i] == letter) {
+                    untransformed[i] = letter;
+                }
+            }
+        }
+
+        return Arrays.toString(untransformed);
     }
     public static int getHighScore() {
         return HangmanGame.highScore;
