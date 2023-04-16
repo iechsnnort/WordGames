@@ -19,7 +19,8 @@ public class WordleGame {
             "AGONY", "APPLE", "LOOPS", "LANDS","AMUSE","ROUTE","RULES","BROWN","GREEN","WHITE","BLACK",
             "TASTY","TOWNS","DRINK","WORDS","WINGS","WINKS","TODAY","WEEKS","MONTH","STATE","STOOD","DATES", "CLASS",
             "GRASS","GLASS","TITLE", "TIMES", "GUESS","GAMES","TRUCK","ADIEU","AISLE","NYMPH","REACT","LATER",
-            "TEARS","ALONE","ARISE","ABOUT","ATONE","SNARE","SNAKE","CREAM","PAINT","WORSE","SAUCE","ROAST","MEDIA","ARRAY"};
+            "TEARS","ALONE","ARISE","ABOUT","ATONE","SNARE","SNAKE","CREAM","PAINT","WORSE","SAUCE","ROAST","MEDIA",
+            "ARRAY", "ROADS", "INDEX", "CHOSE", "GOODS", "TRIES"};
 
     public WordleGame(String word,String guess) {
         this.currentWord = word;
