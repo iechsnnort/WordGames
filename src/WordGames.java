@@ -25,6 +25,7 @@ public class WordGames {
         do {
             WordGames.printMenu();
 
+            // Grab input and make sure it exists/is valid.
             try {
                 selection = WordGames.INPUT.nextInt();
                 WordGames.INPUT.nextLine();
@@ -33,11 +34,14 @@ public class WordGames {
                 selection = 0;
             }
 
+            // Match selection to game.
             switch (selection) {
                 case 0:
                     System.out.println("Thanks for playing!");
                     break;
                 case 1:
+                    WordleGame wordle = new WordleGame("", "");
+                    wordle.run();
                     break;
                 case 2:
                     Random random = new Random();
@@ -53,13 +57,13 @@ public class WordGames {
 
     public static void printMenu() {
         String menu = String.format("""
-                # .. Game (High Score)
+                # .. Game
                 
-                1 .. Wordle (%d)     2 .. Hangman (%d)
-                3 .. Crossword (%d)
+                1 .. Wordle         2 .. Hangman
+                3 .. Crossword
                                         
                 0 .. Exit
-                Your Selection:\s""", 0, HangmanGame.HIGH_SCORE, 0); // Placeholder 0's
+                Your Selection:\s""");
         System.out.print(menu);
     }
 }

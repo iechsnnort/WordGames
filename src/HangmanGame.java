@@ -2,87 +2,30 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class HangmanGame {
-    private String currentWord;
+    public String currentWord;
     public static int HIGH_SCORE = 0;
-    private int guesses;
-    private ArrayList<Character> guessedWrong = new ArrayList<>();
-    private ArrayList<Character> guessedCorrect = new ArrayList<>();
+    public int stage = 0;
+    public int guesses; //TODO: change access modifier here and fix up boardbuilder
+    public ArrayList<Character> guessedWrong = new ArrayList<>();
+    public ArrayList<Character> guessedCorrect = new ArrayList<>();
 
     public HangmanGame(String word) {
         // Initialize the Hangman game
         this.currentWord = word.toUpperCase();
-        // Map word length to amount of guesses (<=5: 4, <=8: 5, >8: 6, or some other values)
         // There is a better way to do this
         int length = this.currentWord.length();
-        if (length <= 5) this.guesses = 4;
-        if (length > 5 && length <= 8) this.guesses = 5;
-        if (length > 8) this.guesses = 6;
+        if (length <= 5) this.guesses = 5;
+        if (length > 5 && length <= 8) this.guesses = 6;
+        if (length > 8) this.guesses = 8;
     }
 
     public void run() {
-        String[] stages = {
-                """
-  ┌─────┐
-  │
-  │
-  │
-──┴──
-""",
-                """
-  ┌─────┐
-  │     ☹
-  │
-  │
-──┴──
-""",
-                """
-  ┌─────┐
-  │     ☹
-  │     │
-  │
-──┴──
-""",
-                """
-  ┌─────┐
-  │     ☹
-  │    ─┤
-  │
-──┴──
-""",
-                """
-  ┌─────┐
-  │     ☹
-  │    ─┼─
-  │
-──┴──
-""",
-                """
-  ┌─────┐
-  │     ☹
-  │    ─┼─
-  │    /
-──┴──
-""",
-                """
-  ┌─────┐
-  │     ☹
-  │    ─┼─
-  │    / \\
-──┴──
-"""
-        };
-        int stage = 0;
-
         do {
             System.out.println();
             System.out.println();
 
             // Print board
-            String feedback = transformWord(this.guessedCorrect);
-            System.out.println(feedback);
-            System.out.println(stages[stage]);
-            System.out.println("Guesses left: " + this.guesses);
-            System.out.println("Wrong letters: " + this.guessedWrong);
+            System.out.println(HangmanBoardBuilder.buildBoard(this, this.transformWord(this.guessedCorrect)));
 
             // Get guess
             System.out.print("Enter guess: ");
@@ -120,18 +63,16 @@ public class HangmanGame {
             }
 
             if (this.currentWord.equals(transformWord(this.guessedCorrect))) this.guesses = -1;
-            System.out.println(this.currentWord + " " + transformWord(this.guessedCorrect));
         } while (this.guesses > 0);
 
 
         // Game loop over.
         if (this.guesses == 0) {
-            System.out.println(stages[6]);
+            System.out.println(HangmanBoardBuilder.stages[6]);
             System.out.println("You lost. The word was: " + this.currentWord + "\r\nThanks for playing!");
 
         } else {
-            System.out.println("You won with " + stage + "wrong guesses!");
-            if (stage < HangmanGame.HIGH_SCORE) HangmanGame.HIGH_SCORE = stage;
+            System.out.println("You won!");
         }
         System.out.println();
         System.out.println();
