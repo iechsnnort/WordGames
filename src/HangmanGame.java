@@ -1,5 +1,4 @@
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 public class HangmanGame {
     public String word;
@@ -19,6 +18,7 @@ public class HangmanGame {
 
     public void run() {
         do {
+            // Margin
             System.out.println();
             System.out.println();
 
@@ -28,8 +28,15 @@ public class HangmanGame {
             // Get guess
             System.out.print("Enter guess: ");
             char guess;
+            String guessedWord;
             try {
-                guess = WordGames.INPUT.nextLine().toUpperCase().toCharArray()[0];
+                guessedWord = WordGames.INPUT.nextLine().toUpperCase();
+                if (this.word.equals(guessedWord)) {
+                    this.guessesLeft = -1;
+                    continue;
+                } else {
+                    guess = guessedWord.toCharArray()[0];
+                }
             } catch (Exception e) {
                 System.out.println("Error: Guess must be a letter from A-Z!");
                 continue;
@@ -41,6 +48,8 @@ public class HangmanGame {
                 continue;
             }
 
+            this.guessed.add(guess);
+
             // Is guess right?
             boolean correct = false;
             for (char character : this.word.toCharArray()) {
@@ -50,13 +59,12 @@ public class HangmanGame {
                 }
             }
 
-            this.guessed.add(guess);
-
             if (!correct) {
-                this.guessesLeft--;
                 stage++;
+                this.guessesLeft--;
             }
 
+            // If the current word is equal to the winning word, exit out of loop.
             if (this.word.equals(HangmanBoardBuilder.transformWord(this.word, this.guessed))) this.guessesLeft = -1;
         } while (this.guessesLeft > 0);
 
@@ -68,8 +76,10 @@ public class HangmanGame {
 
         } else {
             System.out.println("You won!");
+
         }
-        System.out.println();
+        System.out.println("Press [ENTER] to continue.");
+        WordGames.INPUT.nextLine();
         System.out.println();
     }
 
@@ -82,6 +92,9 @@ public class HangmanGame {
             }
         }
 
+        Set<Character> set = new LinkedHashSet<>(wrong);
+        wrong.clear();
+        wrong.addAll(set);
         return wrong;
     }
 }
