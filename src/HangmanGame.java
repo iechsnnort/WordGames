@@ -2,21 +2,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class HangmanGame {
-    public String currentWord;
-    public static int HIGH_SCORE = 0;
+    public String word;
     public int stage = 0;
-    public int guesses; //TODO: change access modifier here and fix up boardbuilder
-    public ArrayList<Character> guessedWrong = new ArrayList<>();
-    public ArrayList<Character> guessedCorrect = new ArrayList<>();
+    public int guessesLeft;
+    public ArrayList<Character> guessed = new ArrayList<>();
 
     public HangmanGame(String word) {
         // Initialize the Hangman game
-        this.currentWord = word.toUpperCase();
-        // There is a better way to do this
-        int length = this.currentWord.length();
-        if (length <= 5) this.guesses = 5;
-        if (length > 5 && length <= 8) this.guesses = 6;
-        if (length > 8) this.guesses = 8;
+        this.word = word.toUpperCase();
+
+        int length = this.word.length();
+        if (length <= 5) this.guessesLeft = 5;
+        if (length > 5 && length <= 8) this.guessesLeft = 6;
+        if (length > 8) this.guessesLeft = 8;
     }
 
     public void run() {
@@ -25,7 +23,7 @@ public class HangmanGame {
             System.out.println();
 
             // Print board
-            System.out.println(HangmanBoardBuilder.buildBoard(this, this.transformWord(this.guessedCorrect)));
+            System.out.println(HangmanBoardBuilder.buildBoard(this));
 
             // Get guess
             System.out.print("Enter guess: ");
@@ -45,31 +43,28 @@ public class HangmanGame {
 
             // Is guess right?
             boolean correct = false;
-            for (char character : this.currentWord.toCharArray()) {
+            for (char character : this.word.toCharArray()) {
                 if (character == guess) {
                     correct = true;
                     break;
                 }
             }
 
-            if (correct) {
-                // Guess is right
-                this.guessedCorrect.add(guess);
-            } else {
-                // Add wrong guess
-                if (!(this.guessedWrong.contains(guess))) this.guessedWrong.add(guess);
-                this.guesses--;
+            this.guessed.add(guess);
+
+            if (!correct) {
+                this.guessesLeft--;
                 stage++;
             }
 
-            if (this.currentWord.equals(transformWord(this.guessedCorrect))) this.guesses = -1;
-        } while (this.guesses > 0);
+            if (this.word.equals(HangmanBoardBuilder.transformWord(this.word, this.guessed))) this.guessesLeft = -1;
+        } while (this.guessesLeft > 0);
 
 
         // Game loop over.
-        if (this.guesses == 0) {
-            System.out.println(HangmanBoardBuilder.stages[6]);
-            System.out.println("You lost. The word was: " + this.currentWord + "\r\nThanks for playing!");
+        if (this.guessesLeft == 0) {
+            System.out.println(HangmanBoardBuilder.stages[8]);
+            System.out.println("The word was: " + this.word + "\r\nThanks for playing!");
 
         } else {
             System.out.println("You won!");
@@ -78,20 +73,15 @@ public class HangmanGame {
         System.out.println();
     }
 
-    // Returns a string filled with _'s the length of the current word, with the correct letters replaced if found in
-    // lettersCorrect
-    private String transformWord(ArrayList<Character> lettersCorrect) {
-        char[] untransformed = new char[this.currentWord.length()];
-        Arrays.fill(untransformed, '_');
+    public ArrayList<Character> getGuessedWrong() {
+        ArrayList<Character> wrong = new ArrayList<>();
 
-        for (char letter : lettersCorrect) {
-            for (int i = 0; i < untransformed.length; i++) {
-                if (this.currentWord.toCharArray()[i] == letter) {
-                    untransformed[i] = letter;
-                }
+        for (char c : this.guessed) {
+            if (!(Arrays.asList(this.word.toCharArray()).contains(c))) {
+                wrong.add(c);
             }
         }
 
-        return new String(untransformed);
+        return wrong;
     }
 }

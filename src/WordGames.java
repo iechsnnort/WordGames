@@ -56,14 +56,17 @@ public class WordGames {
     }
 
     public static void printMenu() {
-        String menu = String.format("""
-                # .. Game
-                
-                1 .. Wordle         2 .. Hangman
-                3 .. Crossword
+        String menu = """
+                ┌────────────────┐
+                │ # ── Game      │
+                └────────────────┘
+                  1 ── Wordle
+                  2 ── Hangman
+                  3 ── Crossword
                                         
-                0 .. Exit
-                Your Selection:\s""");
+                  0 ── Exit
+                  
+                Your Selection:\s""";
         System.out.print(menu);
     }
 }
