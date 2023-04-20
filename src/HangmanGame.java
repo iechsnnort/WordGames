@@ -28,9 +28,8 @@ public class HangmanGame {
             // Get guess
             System.out.print("Enter guess: ");
             char guess;
-            String guessedWord;
             try {
-                guessedWord = WordGames.INPUT.nextLine().toUpperCase();
+                String guessedWord = WordGames.INPUT.nextLine().toUpperCase();
                 if (this.word.equals(guessedWord)) {
                     this.guessesLeft = -1;
                     continue;
@@ -51,15 +50,7 @@ public class HangmanGame {
             this.guessed.add(guess);
 
             // Is guess right?
-            boolean correct = false;
-            for (char character : this.word.toCharArray()) {
-                if (character == guess) {
-                    correct = true;
-                    break;
-                }
-            }
-
-            if (!correct) {
+            if (!isCharInWord(guess)) {
                 stage++;
                 this.guessesLeft--;
             }
@@ -75,6 +66,7 @@ public class HangmanGame {
             System.out.println("The word was: " + this.word + "\r\nThanks for playing!");
 
         } else {
+            System.out.println(this.word);
             System.out.println("You won!");
 
         }
@@ -87,7 +79,7 @@ public class HangmanGame {
         ArrayList<Character> wrong = new ArrayList<>();
 
         for (char c : this.guessed) {
-            if (!(Arrays.asList(this.word.toCharArray()).contains(c))) {
+            if (!isCharInWord(c)) {
                 wrong.add(c);
             }
         }
@@ -96,5 +88,14 @@ public class HangmanGame {
         wrong.clear();
         wrong.addAll(set);
         return wrong;
+    }
+
+    private boolean isCharInWord(char c) {
+        for (char character : this.word.toCharArray()) {
+            if (character == c) {
+                return true;
+            }
+        }
+        return false;
     }
 }
