@@ -35,7 +35,11 @@ public class CrosswordGame {
             ArrayList<Intersection> intersections = getIntersections(latestWord.word, word);
             if (intersections.isEmpty()) continue;
             for (Intersection intersection : intersections) {
-
+                if (latestWord.direction == Direction.HORIZONTAL) {
+                    Word testWord = new Word(word, -1, -1, Direction.VERTICAL);
+                } else {
+                    Word testWord = new Word(word, latestWord.x + intersection.w1pos(), latestWord.y - intersection.w2pos(), Direction.HORIZONTAL);
+                }
             }
         }
 
