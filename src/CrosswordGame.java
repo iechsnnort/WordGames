@@ -1,5 +1,6 @@
 import Crossword.Direction;
 import Crossword.Coordinate;
+import Crossword.RatedBoard;
 import Crossword.Word;
 
 import java.util.ArrayList;
@@ -24,41 +25,68 @@ public class CrosswordGame {
     public CrosswordGame(String[] _words) {
         System.out.println(Arrays.toString(_words));
 
-        ArrayList<String> words = new ArrayList<>(List.of(_words));
-        placeWordAt(words.get(0), 10, 10, Direction.VERTICAL); // TODO: Dynamic resizing based on words in board
+        ArrayList<String> words = new ArrayList<>(List.of(Arrays.copyOfRange(_words, 1, _words.length)));
+        placeWordAt(_words[0], 10, 10, Direction.VERTICAL); // TODO: Dynamic resizing based on words in board
 
+        // Get list of every possible board.
+        ArrayList<RatedBoard> ratedBoards = new ArrayList<>();
+        for (ArrayList<Word> boar : getBoardsFrom(this.board, words)) {
+            ratedBoards.add(new RatedBoard(boar, getBoardRating(boar, _words.length)));
+        }
 
-    }
-
-    // Returns an array of boards, with each possibility given the list of words.
-    public ArrayList<ArrayList<Word>> getBoardsFrom(ArrayList<Word> board, String[] words) {
-        ArrayList<ArrayList<Word>> boards = new ArrayList<>();
-        Word latestWord = board.get(board.size() - 1); // TODO: Make check all words
-
-        // For each word in the remaining words: can we place them down?
-        for (String word : words) {
-            ArrayList<Coordinate> intersections = getValidIntersections(latestWord.word, word);
-            if (intersections.isEmpty()) continue;
-
-            // Each intersection: place down the word on a board. Are there any errors?
-            for (Coordinate intersection : intersections) {
-                Word testWord = getWordFromIntersection(board, latestWord, word, intersection);
-
-                // Any errors in this placement?
-                boolean flag = false;
-                for (Word w2 : board) {
-                    if (wordsConflict(testWord, w2)) flag = true;
-                }
-                if (flag) continue;
-
-                // Make a new board to avoid duplicate words.
-                ArrayList<Word> newBoard = new ArrayList<>(board);
-                placeWordAtBoard(newBoard, testWord);
-
-                boards.add(newBoard);
+        // Which board is rated highest?
+        float max = 0.0f;
+        // Re iter. Bite me.
+        for (RatedBoard ratedBoard : ratedBoards) {
+            if (ratedBoard.rating() > max) {
+                max = ratedBoard.rating();
+                this.board = ratedBoard.board();
             }
         }
 
+        // I have successfully selected a board. Enough for now.
+        printBoard();
+    }
+
+    // Returns an array of boards, with each possibility given the list of words.
+    public ArrayList<ArrayList<Word>> getBoardsFrom(ArrayList<Word> board, ArrayList<String> words) {
+        ArrayList<ArrayList<Word>> boards = new ArrayList<>();
+
+        // For each word in the remaining words: can we place them down?
+        for (Word latestWord : board) {
+            for (String word : words) {
+                ArrayList<Coordinate> intersections = getValidIntersections(latestWord.word, word);
+                if (intersections.isEmpty()) continue;
+
+                // Each intersection: place down the word on a board. Are there any errors?
+                for (Coordinate intersection : intersections) {
+                    Word testWord = getWordFromIntersection(board, latestWord, word, intersection);
+
+                    // Any errors in this placement?
+                    boolean flag = false;
+                    for (Word w2 : board) {
+                        if (wordsConflict(testWord, w2)) flag = true;
+                    }
+                    if (flag) continue;
+
+                    // Make a new board to avoid duplicate words.
+                    ArrayList<Word> newBoard = new ArrayList<>(board);
+                    placeWordAtBoard(newBoard, testWord);
+
+                    boards.add(newBoard);
+                }
+            }
+        }
+        ArrayList<ArrayList<Word>> boardsToAdd = new ArrayList<>(); // Avoid ConcurrentModificationException!
+
+        // For each board in the boards we just generated, find the next set of boards from that. Add to the return
+        // object.
+        for (ArrayList<Word> wowThatsALotOfBoards : boards) {
+            if (!words.isEmpty()) words.remove(0);
+            boardsToAdd.addAll(getBoardsFrom(wowThatsALotOfBoards, words));
+        }
+
+        boards.addAll(boardsToAdd);
         return boards;
     }
 
@@ -100,6 +128,35 @@ public class CrosswordGame {
         }
 
         return ret;
+    }
+
+    private float getBoardRating(ArrayList<Word> board, int initialWords) {
+        float wordsRatio = (float) board.size() / initialWords;
+
+        // Bite me.
+        int boardLengthX = 1;
+        int boardLengthY = 1;
+
+        for (Word iter : board) {
+            if (iter.direction == Direction.HORIZONTAL) {
+                int test = iter.word.length() + iter.x;
+                if (test > boardLengthX) boardLengthX = test;
+            }
+            if (iter.x > boardLengthX) boardLengthX = iter.x;
+        }
+
+        for (Word iter : board) {
+            if (iter.direction == Direction.VERTICAL) {
+                int test = iter.word.length() + iter.y;
+                if (test > boardLengthY) boardLengthY = test;
+            }
+            if (iter.y > boardLengthY) boardLengthY = iter.y;
+        }
+
+        float squareness = (boardLengthX >= boardLengthY) ? (float) boardLengthX / boardLengthY :
+                (float) boardLengthY / boardLengthX;
+
+        return (wordsRatio * 3) + (squareness) * 2;
     }
 
     private boolean wordsConflict(Word word1, Word word2) {

@@ -50,7 +50,7 @@ public class WordGames {
                     hangman.run();
                     break;
                 case 3:
-                    CrosswordGame crossword = new CrosswordGame(new String[]{"AVALANCHE", "AMONG", "GARY", "WHY", "HELLO"});
+                    CrosswordGame crossword = new CrosswordGame(new String[]{"AVALANCHE", "AMONG", "GARY", "WHY", "HELLO", "SWEET", "HOME", "ALABAMA", "TAKE", "ME", "COUNTRY", "ROADS"});
                     break;
             }
         } while (selection != 0);
