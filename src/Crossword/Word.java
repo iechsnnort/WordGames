@@ -11,4 +11,14 @@ public class Word {
         this.direction = dir;
         this.word = word.toUpperCase();
     }
+
+    @Override
+    public String toString() {
+        return "Word{" +
+                "x=" + x +
+                ", y=" + y +
+                ", direction=" + direction +
+                ", word='" + word + '\'' +
+                '}';
+    }
 }
