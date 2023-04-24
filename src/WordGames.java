@@ -3,7 +3,7 @@ import java.io.FileNotFoundException;
 import java.util.*;
 
 /* WordGames
-    CSIS 1400 Final Project
+    CSIS 1400 Team Project
     Authors: Nephi Norton, Oscar Roman Marcial
     Last modified: 23 Apr. 2023
 
