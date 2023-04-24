@@ -1,5 +1,9 @@
 package Crossword;
 
+/** Word
+ * @author Nephi Norton
+ * word class used to represent a word with a coordinate location on a cartesian plane.
+ */
 public class Word {
     public int x;
     public int y;

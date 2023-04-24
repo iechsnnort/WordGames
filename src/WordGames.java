@@ -134,7 +134,7 @@ public class WordGames {
             switch (selection) {
                 case 0 -> System.out.println("Thanks for playing!");
                 case 1 -> {
-                    WordleGame wordle = new WordleGame("", "");
+                    WordleGame wordle = new WordleGame("");
                     wordle.run();
                 }
                 case 2 -> {

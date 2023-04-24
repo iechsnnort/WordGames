@@ -1,5 +1,9 @@
 package Crossword;
 
+/** IndexedWord
+ * @author nephi norton
+ * Word with an associated Index (see Index.java) as well as a revealed status.
+ */
 public class IndexedWord {
     public Word word;
     public Index index;

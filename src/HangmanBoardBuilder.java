@@ -1,6 +1,10 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/** HangmanBoardBuilder
+ * builds boards for hangman. what can I say?
+ * @author Nephi Norton
+ */
 public class HangmanBoardBuilder {
     public static String[] stages = {
             """

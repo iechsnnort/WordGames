@@ -1,6 +1,14 @@
-import Crossword.*;
+import Crossword.Coordinate;
+import Crossword.Direction;
+import Crossword.Index;
+import Crossword.IndexedWord;
+import Crossword.RatedBoard;
+import Crossword.Word;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Random;
 
 /** CrosswordGame - Logic behind generating crossword puzzles and user interface for the game itself
  * @author Nephi Norton
@@ -39,7 +47,6 @@ public class CrosswordGame {
         for (int i = 0; i < topBoards.length; i++) {
             topBoards[i] = ratedBoards.get(i);
         }
-        System.out.println(Arrays.toString(topBoards));
         Random random = new Random();
         this.board = topBoards[random.nextInt(topBoards.length)].board();
 
