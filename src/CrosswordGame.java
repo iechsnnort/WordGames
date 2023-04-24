@@ -1,57 +1,124 @@
-import Crossword.Direction;
-import Crossword.Coordinate;
-import Crossword.RatedBoard;
-import Crossword.Word;
+import Crossword.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
-/**
- *
- Sort all the words by length, descending.
- Take the first word and place it on the board.
- Take the next word.
- Search through all the words that are already on the board and see if there are any possible intersections (any common letters) with this word.
- If there is a possible location for this word, loop through all the words that are on the board and check to see if the new word interferes.
- If this word doesn't break the board, then place it there and go to step 3, otherwise, continue searching for a place (step 4).
- Continue this loop until all the words are either placed or unable to be placed.
+/** CrosswordGame - Logic behind generating crossword puzzles and user interface for the game itself
+ * @author Nephi Norton
+  - Sort words by length
+  - Place first word on board
+  - Generate all possible boards from that board with the given words (see getBoardsFrom)
+  - Rate each one based on squareness and amount of words it has
+  - Take the highest one
+  - Make sure no coordinates are negative
 
+  - Begin user interaction with board.
  */
 
 public class CrosswordGame {
     private ArrayList<Word> board = new ArrayList<>();
 
+    public final String[] initialWords;
+
     public CrosswordGame(String[] _words) {
-        System.out.println(Arrays.toString(_words));
+        Arrays.sort(_words);
+        initialWords = _words;
+        placeWordAt(_words[0], 0, 0, Direction.VERTICAL);
 
-        ArrayList<String> words = new ArrayList<>(List.of(Arrays.copyOfRange(_words, 1, _words.length)));
-        placeWordAt(_words[0], 10, 10, Direction.VERTICAL); // TODO: Dynamic resizing based on words in board
-
-        // Get list of every possible board.
+        System.out.println("Generating board. Please be patient, this could take a minute...");
+        // Get list of possible boards
+        ArrayList<ArrayList<Word>> possibleBoards = getBoardsFrom(this.board);
         ArrayList<RatedBoard> ratedBoards = new ArrayList<>();
-        for (ArrayList<Word> boar : getBoardsFrom(this.board, words)) {
+        for (ArrayList<Word> boar : possibleBoards) {
             ratedBoards.add(new RatedBoard(boar, getBoardRating(boar, _words.length)));
         }
 
-        // Which board is rated highest?
-        float max = 0.0f;
-        // Re iter. Bite me.
-        for (RatedBoard ratedBoard : ratedBoards) {
-            if (ratedBoard.rating() > max) {
-                max = ratedBoard.rating();
-                this.board = ratedBoard.board();
+        // Choose one of the top 5 highest rated boards for variety
+        ratedBoards.sort(Comparator.comparingDouble(RatedBoard::rating));
+        // But first, make the thing an array.
+        RatedBoard[] topBoards = new RatedBoard[5];
+        for (int i = 0; i < topBoards.length; i++) {
+            topBoards[i] = ratedBoards.get(i);
+        }
+        System.out.println(Arrays.toString(topBoards));
+        Random random = new Random();
+        this.board = topBoards[random.nextInt(topBoards.length)].board();
+
+        setBoardInPositiveIntegerRange(this.board);
+
+        // Board has been selected. Now create a new board with IndexedWords.
+        ArrayList<IndexedWord> indexedBoard = new ArrayList<>();
+
+        // Index words
+        int lastX = -1;
+        int lastY = -1;
+        int offset = 0;
+        for (int i = 0; i < this.board.size(); i++) {
+            Word word = this.board.get(i);
+            if (word.x == lastX && word.y == lastY) {
+                offset++;
+            } else {
+                lastX = word.x;
+                lastY = word.y;
             }
+            indexedBoard.add(new IndexedWord(word, new Index(word.direction, (i + 1 - offset)), false));
         }
 
-        // I have successfully selected a board. Enough for now.
-        printBoard();
+        boolean won = false;
+        do {
+            printBoard(indexedBoard);
+            // Print the index + (down or across, depending)
+            for (IndexedWord indexedWord : indexedBoard) {
+                System.out.print(indexedWord.index.index() + " ");
+                System.out.println(((indexedWord.word.direction == Direction.HORIZONTAL) ? "ACROSS" : "DOWN") + ": " + lookupDefinition(indexedWord.word.word));
+            }
+
+            // Get guess
+            System.out.print("Enter guess: ");
+            String guess;
+            try {
+                guess = WordGames.INPUT.nextLine().toUpperCase();
+            } catch (Exception e) {
+                System.out.println("Error: Guess must be a word!");
+                continue;
+            }
+
+            // Does the guess match any of the words here?
+            boolean guessCorrect = false;
+            for (IndexedWord word : indexedBoard) {
+                if (word.word.word.toUpperCase().equals(guess)) {
+                    word.revealed = true;
+                    guessCorrect = true;
+                }
+            }
+
+            if (guessCorrect) {
+                System.out.println("Correct!");
+            } else {
+                System.out.println("Try again!");
+            }
+
+            // Win condition: No words hidden
+            won = true;
+            for (IndexedWord word : indexedBoard) {
+                if (!word.revealed) {
+                    won = false;
+                    break;
+                }
+            }
+        } while (!won);
+
+        System.out.println();
+        System.out.println("You won! Congratulations!");
+        System.out.println("Press [ENTER] to continue!");
+        WordGames.INPUT.nextLine();
     }
 
     // Returns an array of boards, with each possibility given the list of words.
-    public ArrayList<ArrayList<Word>> getBoardsFrom(ArrayList<Word> board, ArrayList<String> words) {
+    public ArrayList<ArrayList<Word>> getBoardsFrom(ArrayList<Word> board) {
         ArrayList<ArrayList<Word>> boards = new ArrayList<>();
+        ArrayList<String> words = getRemainingWords(board);
 
+        // This adds every possible next board (1 word) to the boards variable.
         // For each word in the remaining words: can we place them down?
         for (Word latestWord : board) {
             for (String word : words) {
@@ -60,7 +127,7 @@ public class CrosswordGame {
 
                 // Each intersection: place down the word on a board. Are there any errors?
                 for (Coordinate intersection : intersections) {
-                    Word testWord = getWordFromIntersection(board, latestWord, word, intersection);
+                    Word testWord = getWordFromIntersection(latestWord, word, intersection);
 
                     // Any errors in this placement?
                     boolean flag = false;
@@ -77,20 +144,34 @@ public class CrosswordGame {
                 }
             }
         }
-        ArrayList<ArrayList<Word>> boardsToAdd = new ArrayList<>(); // Avoid ConcurrentModificationException!
 
-        // For each board in the boards we just generated, find the next set of boards from that. Add to the return
-        // object.
-        for (ArrayList<Word> wowThatsALotOfBoards : boards) {
-            if (!words.isEmpty()) words.remove(0);
-            boardsToAdd.addAll(getBoardsFrom(wowThatsALotOfBoards, words));
+        // Reduce boards to the best 3. This prevents loops that will take longer than time itself...
+        ArrayList<RatedBoard> ratedBoards = new ArrayList<>();
+        for (ArrayList<Word> boar : boards) {
+            ratedBoards.add(new RatedBoard(boar, getBoardRating(boar, this.initialWords.length)));
+        }
+
+        ratedBoards.sort(Comparator.comparingDouble(RatedBoard::rating));
+        ArrayList<RatedBoard> boardsToUse = new ArrayList<>();
+        if (ratedBoards.size() > 3) {
+            boardsToUse.add(ratedBoards.get(0));
+            boardsToUse.add(ratedBoards.get(1));
+            boardsToUse.add(ratedBoards.get(2));
+            boardsToUse.add(ratedBoards.get(3));
+        } else {
+            boardsToUse = ratedBoards;
+        }
+
+        ArrayList<ArrayList<Word>> boardsToAdd = new ArrayList<>();
+        for (RatedBoard newBoard : boardsToUse) {
+            boardsToAdd.addAll(getBoardsFrom(newBoard.board()));
         }
 
         boards.addAll(boardsToAdd);
         return boards;
     }
 
-    private Word getWordFromIntersection(ArrayList<Word> board, Word latestWord, String word, Coordinate intersection) {
+    private Word getWordFromIntersection(Word latestWord, String word, Coordinate intersection) {
         int x, y;
 
         if (latestWord.direction == Direction.HORIZONTAL) {
@@ -130,8 +211,22 @@ public class CrosswordGame {
         return ret;
     }
 
+    private String lookupDefinition(String word) {
+        return WordGames.dictionary.get(word.toUpperCase());
+    }
+
+    private ArrayList<String> getRemainingWords(ArrayList<Word> board) {
+        ArrayList<String> ret = new ArrayList<>(Arrays.asList(this.initialWords));
+
+        for (Word word : board) {
+            ret.remove(word.word);
+        }
+
+        return ret;
+    }
+
     private float getBoardRating(ArrayList<Word> board, int initialWords) {
-        float wordsRatio = (float) board.size() / initialWords;
+        float wordsRatio = initialWords / (float) board.size();
 
         // Bite me.
         int boardLengthX = 1;
@@ -156,7 +251,34 @@ public class CrosswordGame {
         float squareness = (boardLengthX >= boardLengthY) ? (float) boardLengthX / boardLengthY :
                 (float) boardLengthY / boardLengthX;
 
-        return (wordsRatio * 3) + (squareness) * 2;
+        return  (wordsRatio * 3) + (squareness * 1);
+    }
+
+    private void setBoardInPositiveIntegerRange(RatedBoard board) {
+        setBoardInPositiveIntegerRange(board.board());
+    }
+
+    private void setBoardInPositiveIntegerRange(ArrayList<Word> board) {
+        // Give each word a real position.
+        int lowestY = 0;
+        for (Word word : board) {
+            if (word.y < lowestY) lowestY = word.y;
+        }
+        if (lowestY < 0) {
+            lowestY = Math.abs(lowestY);
+        }
+        int lowestX = 0;
+        for (Word word : board) {
+            if (word.x < lowestX) lowestX = word.x;
+        }
+        if (lowestX < 0) {
+            lowestX = Math.abs(lowestX);
+        }
+
+        for (Word word : board) {
+            word.y += lowestY;
+            word.x += lowestX;
+        }
     }
 
     private boolean wordsConflict(Word word1, Word word2) {
@@ -192,11 +314,7 @@ public class CrosswordGame {
         }
     }
 
-    public void printBoard() {
-        printBoard(this.board);
-    }
-
-    public void printBoard(ArrayList<Word> board) {
+    public void printBoard(ArrayList<IndexedWord> board) {
         if (this.board.isEmpty()) System.out.println("Board is empty - nothing to print!");
 
         char[][] boardArr = makeCharArrayOfBoard(board);
@@ -206,35 +324,54 @@ public class CrosswordGame {
 
     // Unsafe method that will overwrite anything on the board with the latest stuff. Make sure your board is logically
     // sound before calling this!
-    private char[][] makeCharArrayOfBoard(ArrayList<Word> board) {
+    private char[][] makeCharArrayOfBoard(ArrayList<IndexedWord> board) {
         int boardLengthX = 1;
         int boardLengthY = 1;
 
-        for (Word iter : board) {
-            if (iter.direction == Direction.HORIZONTAL) {
-                int test = iter.word.length() + iter.x;
+        for (IndexedWord iter : board) {
+            if (iter.word.direction == Direction.HORIZONTAL) {
+                int test = iter.word.word.length() + iter.word.x;
                 if (test > boardLengthX) boardLengthX = test;
             }
-            if (iter.x > boardLengthX) boardLengthX = iter.x;
+            if (iter.word.x > boardLengthX) boardLengthX = iter.word.x;
         }
 
-        for (Word iter : board) {
-            if (iter.direction == Direction.VERTICAL) {
-                int test = iter.word.length() + iter.y;
+        for (IndexedWord iter : board) {
+            if (iter.word.direction == Direction.VERTICAL) {
+                int test = iter.word.word.length() + iter.word.y;
                 if (test > boardLengthY) boardLengthY = test;
             }
-            if (iter.y > boardLengthY) boardLengthY = iter.y;
+            if (iter.word.y > boardLengthY) boardLengthY = iter.word.y;
         }
-        // What are these values?
+        // A +1 just in case. You can never be too safe around arrays!
         char[][] newBoard = new char[boardLengthY + 1][boardLengthX + 1];
 
-        for (Word iter : board) {
-            char[] wordArr = iter.word.toCharArray();
+        for (IndexedWord iter : board) {
+            if (!iter.revealed) {
+                char[] wordArr = iter.word.word.toCharArray();
+                for (int i = 0; i < wordArr.length; i++) {
+                    if (iter.word.direction == Direction.HORIZONTAL) {
+                        newBoard[iter.word.y][iter.word.x + i] = '_';
+                    } else {
+                        newBoard[iter.word.y + i][iter.word.x] = '_';
+                    }
+                }
+            }
+        }
+
+        for (IndexedWord iter : board) {
+            newBoard[iter.word.y][iter.word.x] = Integer.toString(iter.index.index()).toCharArray()[0];
+        }
+
+        for (IndexedWord iter : board) {
+            char[] wordArr = iter.word.word.toCharArray();
             for (int i = 0; i < wordArr.length; i++) {
-                if (iter.direction == Direction.HORIZONTAL) {
-                    newBoard[iter.y][iter.x + i] = wordArr[i];
-                } else {
-                    newBoard[iter.y + i][iter.x] = wordArr[i];
+                if (iter.revealed) {
+                    if (iter.word.direction == Direction.HORIZONTAL) {
+                        newBoard[iter.word.y][iter.word.x + i] = wordArr[i];
+                    } else {
+                        newBoard[iter.word.y + i][iter.word.x] = wordArr[i];
+                    }
                 }
             }
         }

@@ -1,5 +1,10 @@
 import java.util.*;
 
+/** HangmanGame
+ * @author Nephi Norton
+ * HangmanGame() provides the initialization behavior for the class
+ * run() provides the game loop for the class
+ */
 public class HangmanGame {
     public String word;
     public int stage = 0;
